@@ -188,11 +188,16 @@ interface WalkthroughInstruction {
 interface WalkthroughStep {
   id: string;
   kind: "arrange" | "act" | "assert" | "smell";
-  title: string;
   explanation: string;      // used in step-focus panel above code
   instruction: WalkthroughInstruction;
   startLine: number;
   endLine: number;
+  example?: SmellExample;   // required when kind === "smell"; omitted otherwise
+}
+
+interface SmellExample {
+  before: string;           // brittle assertion snippet
+  after: string;            // improved assertion snippet
 }
 
 interface ReviewComment {
@@ -223,7 +228,7 @@ Render order is fixed and deterministic: `arrange -> act -> assert -> smell? -> 
 | `failureMode` | — | Card: Common pitfall |
 | `deepDive` | — | Optional card: Deeper context |
 | step `explanation` | Step-focus panel above code | Same |
-| smell-only example | — | Extra coaching card with before/after assertion snippets (UI-composed for smell steps) |
+| step `example` | — | Smell-only card: before/after assertion snippets from `example.before` / `example.after` |
 
 ## Validation Rules
 
@@ -234,7 +239,9 @@ All walkthrough data is validated with Zod before rendering. Minimum invariants 
 - all referenced lines are within the source code length
 - `arrange`, `act`, and `assert` are required; each step's `kind` must match its key
 - `smell` is optional; if present, `kind` must be `"smell"`
+- `example` is required when `kind` is `"smell"` and must have non-empty `before` and `after`; it must be absent for all other kinds
 - step ids are unique within a walkthrough
+- `explanation` is a required non-empty string on every step (it is the step-focus body)
 - `instruction.question`, `mentorTake`, `failureMode` are required non-empty strings
 - `instruction.evidence` has at least one non-empty string
 - if `deepDive` is present, it has at least one non-empty string
@@ -257,60 +264,129 @@ Definition of done:
 - No React hydration mismatch warnings on initial load in local development
 - If a warning appears, reproduce once in an extension-disabled/incognito window before treating it as an app defect
 
-## 6. Walkthrough Source
+## Curated Walkthroughs
 
-- **Curated source (MVP):** three built-in example tests as deterministic data
-- Storage/format of curated walkthroughs _(TBD)_
-- **Source adapter interface** — the contract every source returns a validated
-  `Walkthrough` (decision #2, #5)
-- **LLM source adapter (stretch):** boundary placement, typed output, validation
-  path _(TBD)_
-- Example selection → hydration flow
+Ship three examples (all include smell + review in the current MVP):
 
-## 7. Walkthrough Engine
+1. `discount-eligible-customer`
+2. `order-submission-async`
+3. `inventory-low-stock-notification`
 
-The engine is the product. It knows nothing about where a walkthrough came from.
+Each includes source code + validated walkthrough with Socratic `instruction` content.
 
-- Responsibilities: highlighting, sequencing, transitions, navigation, progressive
-  disclosure
-- State model: current step, Focus/Coaching mode, coaching card index, reveal state
-  _(TBD)_
-- Deterministic navigation: next/back, timeline jumps, fixed sequence enforcement
-- Focus ↔ Coaching switching without changing timeline position
-- Progressive reveal logic per step
-- State management approach _(TBD — React state / reducer / store)_
+## Presentation Layer
 
-## 8. Presentation Layer
+### User Flow
 
-### 8.1 Layout
-- Code as the focal interface; step-focus card above code; insight column to right
-- Timeline pills (progress + jump navigation)
-- Viewport-fixed Prev/Next footer (must not jump with content height)
+```text
+Open Replay
 
-### 8.2 Custom Code Viewer (decision #4)
-- Rendering pipeline (guided reading, not editing) _(TBD)_
-- Syntax handling / tokenization approach _(TBD)_
-- Line highlighting and progressive reveal mechanics
-- Language scope: JavaScript/TypeScript only
+↓
 
-### 8.3 Insight Panel
-- Focus mode (dense: Socratic question + first evidence)
-- Coaching mode (paginated card pager)
-- Review-step behavior (toggle visible but disabled)
+Choose Example
 
-### 8.4 Animation (decision #6)
-- Instructional uses: attention, progress, reinforcement
-- Transition inventory _(TBD)_
-- Technology / approach _(TBD)_
-- Reduced-motion / accessibility considerations _(TBD)_
+↓
 
-## 9. Interaction & Keyboard Support
+Interactive Walkthrough
+
+↓
+
+Arrange
+
+↓
+
+Act
+
+↓
+
+Assert
+
+↓
+
+Testing Smell (if present)
+
+↓
+
+Senior Engineer Review
+```
+
+Within each non-review step, users may switch Focus ↔ Coaching without changing the timeline step.
+
+### UI Layout
+Vertical composition (top → bottom):
+
+1. **Example toolbar** — select curated example
+2. **Hero** — product name `Replay`, example title, description
+3. **Timeline pills** — `ARRANGE` / `ACT` / `ASSERT` / `SMELL?` / `REVIEW` (clickable)
+4. **Step-focus card** (non-review) or **ReviewCard** (review)
+5. **Two-column grid** — code (left) + insight column (right)
+6. **Fixed footer** — compact `Prev` / `Next` step navigation (viewport-fixed)
+
+### Step-focus card (above code)
+
+The step-focus card poses a **fixed lens question** by step kind; the authored,
+step-specific Socratic question lives in the insight column (see below). This split
+is intentional: the lens orients the reader to the AAA phase, and the insight panel
+asks the specific question about this test.
+
+- Meta: `Step N of M • KIND`
+- Prompt title from fixed step-kind labels:
+  - arrange → “What are we setting up?”
+  - act → “What behavior are we exercising?”
+  - assert → “What outcome must hold true?”
+  - smell → “What makes this brittle?”
+- Body: `step.explanation`
+- Keep a consistent panel height strategy (min-height; avoid clipping text)
+
+### Review above code (`ReviewCard`)
+
+- Meta: `Step M of M • REVIEW`
+- Title: “Senior Engineer Review”
+- Body: `review.summary` only
+
+### Insight column (right of code)
+
+**Non-review steps**
+
+- Card contains centered **Focus | Coaching** toggle at top
+- **Focus mode (default):**
+  - Question (`instruction.question`)
+  - What to notice (first 2 `evidence` bullets)
+- **Coaching mode:**
+  - Card-level nav (`‹` ··· `›`) under the toggle
+  - Then card title + body for the active coaching card
+  - Cards in order: Question → What to notice → Mentor take → Common pitfall → optional Deeper context → (smell only) Smell example
+
+**Review step**
+
+- Same Focus | Coaching toggle remains visible but **disabled/greyed out**
+- Single guidance card with:
+  - Naming check: authored judgment from `review.nameCheck` (whether the title states
+    behavior, condition, and expected outcome)
+  - Optional display echo of the `it`/`test` title string, read from `sourceCode` for
+    orientation only — never a computed judgment
+  - Suggested improvement (`review.suggestion`)
+
+### Fixed footer navigation
+
+- Compact pill buttons (`Prev` / `Next`), centered
+- `position: fixed` bottom bar so location does not jump when insight content height changes
+- Add bottom padding on the main layout so content is not obscured
+- Shortcut hint: `←/→ step · 1–N jump`
+
+## Keyboard Shortcuts
 
 - Step nav: `←/→` or `[`/`]`
 - Timeline jump: `1`–`9`
 - Coaching cards: `j`/`k`
-- Focus/Coaching toggle
-- Focus management / accessibility _(TBD)_
+- Focus/Coaching toggle: `f` / `c`
+
+Hotspot code lines also support Enter/Space to jump to that step.
+
+Number keys map to the **visible** timeline index (`Step N of M`), not a fixed
+kind. All three MVP examples include a smell (M = 5), so this is not exercised yet;
+when smell is absent (M = 4) the engine must still keep number-key jumps aligned
+with the rendered pills. Noted and deferred.
 
 ## Tech Stack
 
@@ -323,7 +399,6 @@ The engine is the product. It knows nothing about where a walkthrough came from.
 | Validation        | Zod                                | Shared runtime schemas                           |
 | Unit Testing      | Vitest                             | Fast feedback                                    |
 | Component Testing | React Testing Library              | Validate interaction behavior                    |
-| Deployment        | Vercel                             | Zero-config deployment                           |
 
 **Not used in the shipped MVP**: Tailwind, shadcn/ui, Radix, Prism, Monaco, live LLM adapters.
 
@@ -341,13 +416,6 @@ This prototype prioritizes interaction quality over exhaustive test coverage and
 Testing should provide confidence that the walkthrough experience remains functional while avoiding unnecessary complexity.
 
 For MVP speed, tests are run locally during development; CI remains intentionally lightweight and does not gate on tests yet.
-
-## 12. Non-Functional Requirements
-
-- Performance targets (first insight within seconds; full walkthrough < 2 min)
-- Determinism / no runtime external dependency for MVP
-- Accessibility baseline _(TBD)_
-- Browser support _(TBD)_
 
 ## Out of Scope (Prototype)
 
@@ -383,7 +451,3 @@ These decisions optimize for validating the interaction while keeping implementa
 - Monaco Editor - rejected because Replay is a guided reading experience rather than a code editor; owning the rendering pipeline provides simpler implementation and greater control over the interaction
 - Free-Form LLM Responses - rejected because deterministic UI is more valuable than expressive prose; structured domain objects make the interface predictable and easier to test
 - Live LLM as the Primary Experience - rejected for the MVP because reviewers should experience the interaction immediately without requiring API keys, network connectivity, or dealing with model latency; the walkthrough engine is the product and live LLM analysis is simply one possible source of walkthroughs
-
-## 14. Open Questions
-
-- _(collect decisions still marked TBD above)_
