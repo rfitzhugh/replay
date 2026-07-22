@@ -370,6 +370,14 @@ asks the specific question about this test.
     orientation only — never a computed judgment
   - Suggested improvement (`review.suggestion`)
 
+### Code viewer status indicators
+
+- Each step owns one source line range; ranges may overlap (a `smell` range commonly spans the entire test, overlapping `arrange`/`act`/`assert`). Resolve overlaps by a status priority (`current` > `completed` > `upcoming`) on a per-line basis — this is a domain-adjacent rendering rule, not just styling, since it determines what a user perceives as "the thing they're looking at right now"
+- Because resolving overlaps per-line can still fragment one logical range into multiple contiguous DOM segments (e.g. a narrower `arrange` range carved out of a wider `smell` range), any floating status badge/label must render **at most once per state**, not once per fragment:
+  - `current`: exactly one badge is expected (there is only ever one active step) — fine to render inline on the highlighted block
+  - `completed`/`upcoming`: do not render a repeating floating badge per fragment at all. A left border color + background tint is sufficient; repeating text badges (e.g. multiple stacked "✓ COMPLETED" labels) are visual clutter, most visible on the `review` step where every prior step is simultaneously "completed"
+- Long lines (most commonly the `it("...")`/`test("...")` title line) must wrap rather than being hard-clipped by horizontal overflow with no scroll affordance — clipping can silently hide the exact word the lesson is testing the reader on
+
 ### Fixed footer navigation
 
 - Compact pill buttons (`Prev` / `Next`), centered
