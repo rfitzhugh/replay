@@ -150,6 +150,8 @@ Owning the rendering pipeline makes it straightforward to:
 - mark the `it(...)` / `test(...)` name line as an orientation cue
 - treat step ranges as clickable hotspots
 
+`SmellExample.before` / `SmellExample.after` are authored assertion snippets, not lines in `sourceCode`. They render as static snippets inside the smell coaching card only. The CodeViewer highlight / reveal / hotspot pipeline does not own them.
+
 This keeps the code as the focal interface while remaining fully deterministic.
 
 ### Animation Should Teach
@@ -272,7 +274,8 @@ Ship three examples (all include smell + review in the current MVP):
 2. `order-submission-async`
 3. `inventory-low-stock-notification`
 
-Each includes source code + validated walkthrough with Socratic `instruction` content.
+Each includes source code + validated walkthrough with Socratic `instruction` content. Because every MVP example includes a smell step, each smell step must also ship a valid `example` (`before` / `after`); validation fails without it
+(see Validation Rules).
 
 ## Presentation Layer
 
