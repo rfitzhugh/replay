@@ -197,7 +197,8 @@ interface WalkthroughStep {
 
 interface ReviewComment {
   summary: string;          // shown above code on review
-  suggestion: string;       // shown in right insight panel on review
+  nameCheck: string;        // naming assessment of the test title; right insight panel on review
+  suggestion: string;       // one suggested improvement; right insight panel on review
 }
 
 interface WalkthroughExample {
@@ -237,7 +238,7 @@ All walkthrough data is validated with Zod before rendering. Minimum invariants 
 - `instruction.question`, `mentorTake`, `failureMode` are required non-empty strings
 - `instruction.evidence` has at least one non-empty string
 - if `deepDive` is present, it has at least one non-empty string
-- `review.summary` and `review.suggestion` are required non-empty strings
+- `review.summary`, `review.nameCheck`, and `review.suggestion` are required non-empty strings
 
 If validation fails, the UI should show a recoverable error state and allow resetting to curated examples.
 
