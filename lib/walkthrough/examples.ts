@@ -324,7 +324,7 @@ it("notifies the manager when stock falls below the threshold", () => {
         mentorTake:
           "Pick fixture numbers that make the branch obvious. `3 < 5` reads as 'clearly low' at a glance, which documents intent better than borderline values.",
         failureMode:
-          "Choosing values right at the boundary (stock === threshold) hides whether you're testing 'below' or 'at or below', leaving the intended rule ambiguous.",
+          "Choosing values right at the boundary (`stock === threshold`) hides whether you're testing 'below' or 'at or below', leaving the intended rule ambiguous.",
       },
       startLine: 4,
       endLine: 5,

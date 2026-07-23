@@ -164,8 +164,11 @@ kbd {
 
 .hero__desc {
   margin: 0;
-  max-width: 68ch;
+  /* Single-line tagline: let it use the content column and wrap only when it
+     genuinely runs out of width, instead of a fixed reading-column cap that
+     splits the sentence early while horizontal space remains. */
   color: var(--c-text-soft);
+  text-wrap: pretty;
 }
 
 /* ---------------- Timeline pills ---------------- */
