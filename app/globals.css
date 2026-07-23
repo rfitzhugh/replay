@@ -164,11 +164,8 @@ kbd {
 
 .hero__desc {
   margin: 0;
-  /* Single-line tagline: let it use the content column and wrap only when it
-     genuinely runs out of width, instead of a fixed reading-column cap that
-     splits the sentence early while horizontal space remains. */
+  max-width: 68ch;
   color: var(--c-text-soft);
-  text-wrap: pretty;
 }
 
 /* ---------------- Timeline pills ---------------- */
@@ -280,8 +277,11 @@ kbd {
 
 .focus-card__body {
   margin: 0;
-  max-width: 74ch;
+  /* Fill the card width like the lens heading above; the earlier reading-column
+     cap made the copy wrap well short of the card's right edge, reading as an
+     odd early split. Content already caps at the .app width (1120px). */
   color: var(--c-text-soft);
+  text-wrap: pretty;
 }
 
 /* ---------------- Spacing gap before grid ---------------- */
