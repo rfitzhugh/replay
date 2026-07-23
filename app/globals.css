@@ -536,6 +536,19 @@ kbd {
   overflow-wrap: anywhere;
 }
 
+/* Inline code within walkthrough prose (backtick spans -> <code>) */
+.inline-code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--c-surface-sunken);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: 0.08em 0.36em;
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 /* Coaching pager */
 
 .pager {

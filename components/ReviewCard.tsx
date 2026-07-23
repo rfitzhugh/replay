@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReviewComment } from "@/lib/walkthrough";
+import RichText from "./RichText";
 
 interface ReviewCardProps {
   review: ReviewComment;
@@ -23,7 +24,9 @@ export default function ReviewCard({
         <span className="focus-card__kind">REVIEW</span>
       </p>
       <h2 className="focus-card__lens">Senior Engineer Review</h2>
-      <p className="focus-card__body">{review.summary}</p>
+      <p className="focus-card__body">
+        <RichText text={review.summary} />
+      </p>
     </section>
   );
 }

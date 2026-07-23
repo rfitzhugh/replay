@@ -2,6 +2,7 @@
 
 import type { ReviewComment, TimelineEntry } from "@/lib/walkthrough";
 import type { CoachingCard } from "./insight-cards";
+import RichText from "./RichText";
 
 export type InsightMode = "focus" | "coaching";
 
@@ -94,13 +95,17 @@ function FocusPanel({ question, evidence }: FocusPanelProps) {
     <div className="insight__body">
       <div className="insight-block">
         <p className="insight-block__eyebrow">Question</p>
-        <p className="insight-block__lead">{question}</p>
+        <p className="insight-block__lead">
+          <RichText text={question} />
+        </p>
       </div>
       <div className="insight-block">
         <p className="insight-block__eyebrow">What to notice</p>
         <ul className="insight-list">
           {notice.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>
+              <RichText text={item} />
+            </li>
           ))}
         </ul>
       </div>
@@ -165,7 +170,9 @@ function CoachingCardBody({ card }: { card: CoachingCard }) {
     return (
       <ul className="insight-list">
         {card.items.map((item, i) => (
-          <li key={i}>{item}</li>
+          <li key={i}>
+            <RichText text={item} />
+          </li>
         ))}
       </ul>
     );
@@ -190,7 +197,11 @@ function CoachingCardBody({ card }: { card: CoachingCard }) {
     );
   }
 
-  return <p className="insight-block__text">{card.body}</p>;
+  return (
+    <p className="insight-block__text">
+      <RichText text={card.body ?? ""} />
+    </p>
+  );
 }
 
 interface ReviewInsightProps {
@@ -203,7 +214,9 @@ function ReviewInsight({ review, testTitle }: ReviewInsightProps) {
     <div className="insight__body">
       <div className="insight-block">
         <p className="insight-block__eyebrow">Naming check</p>
-        <p className="insight-block__text">{review.nameCheck}</p>
+        <p className="insight-block__text">
+          <RichText text={review.nameCheck} />
+        </p>
       </div>
       {testTitle ? (
         <div className="insight-block">
@@ -213,7 +226,9 @@ function ReviewInsight({ review, testTitle }: ReviewInsightProps) {
       ) : null}
       <div className="insight-block">
         <p className="insight-block__eyebrow">Suggested improvement</p>
-        <p className="insight-block__text">{review.suggestion}</p>
+        <p className="insight-block__text">
+          <RichText text={review.suggestion} />
+        </p>
       </div>
     </div>
   );

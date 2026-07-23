@@ -2,6 +2,7 @@
 
 import type { WalkthroughStep } from "@/lib/walkthrough";
 import { LENS_QUESTIONS } from "./labels";
+import RichText from "./RichText";
 
 interface StepFocusCardProps {
   step: WalkthroughStep;
@@ -24,7 +25,9 @@ export default function StepFocusCard({
         <span className="focus-card__kind">{step.kind.toUpperCase()}</span>
       </p>
       <h2 className="focus-card__lens">{LENS_QUESTIONS[step.kind]}</h2>
-      <p className="focus-card__body">{step.explanation}</p>
+      <p className="focus-card__body">
+        <RichText text={step.explanation} />
+      </p>
     </section>
   );
 }
